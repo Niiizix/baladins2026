@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camp Baladin 2026 — Intendants</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #2D4A3E;
+    --moss: #4A7C59;
+    --sage: #8FB89A;
+    --cream: #F5F0E8;
+    --warm: #E8DFC8;
+    --accent: #C4843A;
+    --accent-light: #F0D4A8;
+    --text: #1A2E25;
+    --text-muted: #5A7A6A;
+    --white: #FDFAF5;
+    --danger: #C0392B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--cream);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(74,124,89,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(196,132,58,0.06) 0%, transparent 50%);
+  }
+  .hero {
+    background-color: var(--forest);
+    color: var(--cream);
+    padding: 3.5rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(143,184,154,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 80% 30%, rgba(196,132,58,0.1) 0%, transparent 40%);
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(143,184,154,0.2);
+    border: 1px solid rgba(143,184,154,0.4);
+    color: var(--sage);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+    position: relative;
+  }
+  .hero h1 span { color: var(--accent-light); }
+  .hero p { font-size: 1rem; color: rgba(245,240,232,0.7); position: relative; }
+  .container { max-width: 680px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .info-banner {
+    background: var(--white);
+    border: 1px solid rgba(74,124,89,0.2);
+    border-left: 3px solid var(--moss);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .info-banner h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--forest);
+    margin-bottom: 0.5rem;
+  }
+  .info-banner ul { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+  .info-banner li { font-size: 0.875rem; color: var(--text-muted); padding-left: 1.1rem; position: relative; }
+  .info-banner li::before { content: '→'; position: absolute; left: 0; color: var(--moss); font-size: 0.8rem; }
+  .card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid rgba(45,74,62,0.1);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: 0 4px 20px rgba(45,74,62,0.08); }
+  .card-num { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--moss); margin-bottom: 0.5rem; }
+  .card label.question { display: block; font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 400; color: var(--forest); margin-bottom: 1.1rem; line-height: 1.4; }
+  .date-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 480px) { .date-grid { grid-template-columns: repeat(2, 1fr); } }
+  .date-btn {
+    background: var(--cream);
+    border: 1px solid rgba(45,74,62,0.15);
+    border-radius: 8px;
+    padding: 0.65rem 0.4rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    user-select: none;
+  }
+  .date-btn .day-num { display: block; font-size: 1.3rem; font-weight: 500; color: var(--text); line-height: 1; margin-bottom: 2px; }
+  .date-btn .day-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .date-btn:hover { border-color: var(--moss); background: rgba(143,184,154,0.1); }
+  .date-btn.selected { background: var(--forest); border-color: var(--forest); color: rgba(245,240,232,0.8); }
+  .date-btn.selected .day-num { color: var(--cream); }
+  .date-btn.selected .day-label { color: rgba(245,240,232,0.7); }
+  .radio-group { display: flex; gap: 10px; }
+  .radio-btn {
+    flex: 1;
+    background: var(--cream);
+    border: 1px solid rgba(45,74,62,0.15);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .radio-btn:hover { border-color: var(--moss); background: rgba(143,184,154,0.1); }
+  .radio-btn.selected { background: var(--forest); border-color: var(--forest); color: var(--cream); }
+  .conditional-card {
+    background: rgba(196,132,58,0.06);
+    border: 1px solid rgba(196,132,58,0.25);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-top: 1rem;
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .conditional-card p { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.5; }
+  .train-warning {
+    margin-top: 0.85rem;
+    padding: 0.65rem 0.9rem;
+    background: rgba(192,57,43,0.07);
+    border-left: 2px solid var(--danger);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    color: var(--danger);
+    line-height: 1.5;
+  }
+  .hidden { display: none !important; }
+  .slider-wrap { padding: 0.5rem 0; }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+  input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: var(--warm); border-radius: 4px; outline: none; cursor: pointer; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--forest); border: 3px solid var(--white); box-shadow: 0 0 0 1px var(--forest); cursor: pointer; transition: transform 0.1s; }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--forest); border: 3px solid var(--white); box-shadow: 0 0 0 1px var(--forest); cursor: pointer; }
+  .slider-value { text-align: center; margin-top: 0.75rem; font-size: 1.5rem; font-family: 'Playfair Display', serif; font-weight: 700; color: var(--forest); }
+  .slider-value span { font-size: 0.85rem; font-family: 'DM Sans', sans-serif; font-weight: 300; color: var(--text-muted); margin-left: 0.4rem; }
+  .slider-emoji { text-align: center; font-size: 1.3rem; margin-top: 0.25rem; }
+
+  /* File upload */
+  .file-upload-area {
+    border: 2px dashed rgba(45,74,62,0.25);
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--cream);
+    margin-top: 0.75rem;
+    position: relative;
+  }
+  .file-upload-area:hover { border-color: var(--moss); background: rgba(143,184,154,0.08); }
+  .file-upload-area.has-file { border-color: var(--moss); border-style: solid; background: rgba(74,124,89,0.05); }
+  .file-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .file-icon { font-size: 1.8rem; margin-bottom: 0.4rem; }
+  .file-upload-area p { font-size: 0.85rem; color: var(--text-muted); }
+  .file-upload-area .file-name { font-size: 0.875rem; color: var(--forest); font-weight: 500; margin-top: 0.3rem; }
+  .file-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.6rem; line-height: 1.5; }
+
+  .submit-area { margin-top: 2rem; text-align: center; }
+  .submit-btn {
+    background: var(--forest);
+    color: var(--cream);
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 3rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+    position: relative;
+  }
+  .submit-btn:hover { background: var(--moss); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(45,74,62,0.2); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(245,240,232,0.4); border-top-color: var(--cream); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg { display: none; color: var(--danger); font-size: 0.82rem; margin-top: 0.6rem; }
+  .global-error { color: var(--danger); font-size: 0.9rem; margin-bottom: 1rem; padding: 0.75rem 1rem; background: rgba(192,57,43,0.07); border-radius: 8px; border-left: 2px solid var(--danger); }
+
+  .success-screen { display: none; text-align: center; padding: 3rem 1.5rem; animation: slideIn 0.4s ease; }
+  .success-icon { width: 64px; height: 64px; background: var(--forest); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.8rem; }
+  .success-screen h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--forest); margin-bottom: 0.75rem; }
+  .success-screen p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
+  .recap-card { background: var(--white); border-radius: 12px; border: 1px solid rgba(45,74,62,0.1); padding: 1.5rem; margin: 1.5rem auto; max-width: 480px; text-align: left; }
+  .recap-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.45rem 0; border-bottom: 1px solid rgba(45,74,62,0.07); font-size: 0.875rem; gap: 1rem; }
+  .recap-row:last-child { border-bottom: none; }
+  .recap-row .label { color: var(--text-muted); flex-shrink: 0; }
+  .recap-row .val { color: var(--text); font-weight: 500; text-align: right; }
+
+  /* Config banner */
+  .config-warn { background: rgba(196,132,58,0.12); border: 1px solid rgba(196,132,58,0.4); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: #7a4a10; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Scouts — Questionnaire intendance</div>
+  <h1>Camp <span>Baladin</span> 2026</h1>
+  <p>14 – 21 juillet · Intendants</p>
+</div>
+
+<div class="container">
+
+  <div id="configWarn" class="config-warn hidden">
+    ⚠ L'URL Apps Script n'est pas configurée. Les réponses ne seront pas enregistrées. Consulte le fichier <code>apps-script.js</code> pour les instructions.
+  </div>
+
+  <div class="info-banner">
+    <h3>Quelques infos importantes avant de commencer</h3>
+    <ul>
+      <li>Pas d'alcool fort au camp</li>
+      <li>On fournit des Caras — pour d'autres bières, il faut les acheter ou les ramener</li>
+      <li>L'essence est uniquement remboursée pour les voitures utilisées pendant le camp (courses, etc.)</li>
+    </ul>
+  </div>
+
+  <form id="mainForm" novalidate>
+
+    <!-- Q1 : Dates -->
+    <div class="card">
+      <div class="card-num">Question 1</div>
+      <label class="question">De quelle date à quelle date serez-vous présent·e ?</label>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.9rem;">Sélectionnez vos jours de présence (14 au 21 juillet)</p>
+      <div class="date-grid" id="dateGrid"></div>
+      <div id="dateRangeDisplay" style="margin-top:0.9rem;font-size:0.875rem;color:var(--moss);min-height:1.2rem;font-weight:500;"></div>
+      <div class="error-msg" id="errDates">Veuillez sélectionner au moins une date.</div>
+    </div>
+
+    <!-- Q2 : Précamp -->
+    <div class="card">
+      <div class="card-num">Question 2</div>
+      <label class="question">Serez-vous là pour le précamp ? <em style="font-size:0.85rem;font-style:normal;color:var(--text-muted)">(12 – 14 juillet)</em></label>
+      <div class="radio-group">
+        <div class="radio-btn" data-group="precamp" data-val="oui" onclick="selectRadio(this)">Oui</div>
+        <div class="radio-btn" data-group="precamp" data-val="non" onclick="selectRadio(this)">Non</div>
+      </div>
+      <div id="trainBlock" class="conditional-card hidden">
+        <p>Vous arrivez le 14 juillet mais pas pour le précamp. Voulez-vous voyager avec nous ? On s'occupe du billet.</p>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.6rem;">
+          <strong style="color:var(--forest)">Départ :</strong> 10h00 · Gare de Soignies
+        </div>
+        <div class="radio-group">
+          <div class="radio-btn" data-group="train" data-val="oui" onclick="selectRadio(this)">Oui, je viens avec vous</div>
+          <div class="radio-btn" data-group="train" data-val="non" onclick="selectRadio(this)">Non, je viens par mes propres moyens</div>
+        </div>
+        <div id="trainWarning" class="train-warning hidden">
+          ⚠ On ne prend pas en charge les frais de transport si tu ne viens pas avec le groupe.
+        </div>
+      </div>
+      <div class="error-msg" id="errPrecamp">Veuillez répondre à cette question.</div>
+    </div>
+
+    <!-- Q3 : Permis -->
+    <div class="card">
+      <div class="card-num">Question 3</div>
+      <label class="question">Avez-vous le permis de conduire ?</label>
+      <div class="radio-group">
+        <div class="radio-btn" data-group="permis" data-val="oui" onclick="selectRadio(this)">Oui</div>
+        <div class="radio-btn" data-group="permis" data-val="non" onclick="selectRadio(this)">Non</div>
+      </div>
+      <div class="error-msg" id="errPermis">Veuillez répondre à cette question.</div>
+    </div>
+
+    <!-- Q4 : Voiture (conditionnel permis) -->
+    <div class="card hidden" id="voitureCard">
+      <div class="card-num">Question 4</div>
+      <label class="question">Aurez-vous une voiture disponible pendant le camp ?</label>
+      <div class="radio-group">
+        <div class="radio-btn" data-group="voiture" data-val="oui" onclick="selectRadio(this)">Oui</div>
+        <div class="radio-btn" data-group="voiture" data-val="non" onclick="selectRadio(this)">Non</div>
+      </div>
+      <div class="error-msg" id="errVoiture">Veuillez répondre à cette question.</div>
+    </div>
+
+    <!-- Q5 : Envie d'animer -->
+    <div class="card">
+      <div class="card-num" id="qAnimNum">Question 5</div>
+      <label class="question">Envie d'animer pendant le camp ?</label>
+      <div class="slider-wrap">
+        <div class="slider-labels">
+          <span>1 — Pas du tout</span>
+          <span>10 — Hype de fou</span>
+        </div>
+        <input type="range" id="animSlider" min="1" max="10" step="1" value="5" oninput="updateSlider()">
+        <div class="slider-value"><span id="sliderVal">5</span><span id="sliderMood"> — Ça peut aller</span></div>
+        <div class="slider-emoji" id="sliderEmoji">😐</div>
+      </div>
+    </div>
+
+    <!-- Q6 : Plus de 20 ans -->
+    <div class="card">
+      <div class="card-num" id="qAgeNum">Question 6</div>
+      <label class="question">Avez-vous plus de 20 ans ?</label>
+      <div class="radio-group">
+        <div class="radio-btn" data-group="age20" data-val="oui" onclick="selectRadio(this)">Oui</div>
+        <div class="radio-btn" data-group="age20" data-val="non" onclick="selectRadio(this)">Non</div>
+      </div>
+      <div id="casierBlock" class="conditional-card hidden">
+        <p>Merci d'ajouter votre extrait de casier judiciaire <strong style="color:var(--forest)">modèle 2</strong>. Ce document est obligatoire pour les animateurs de plus de 20 ans.</p>
+        <div class="file-upload-area" id="fileUploadArea">
+          <input type="file" id="casierFile" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this)">
+          <div class="file-icon">📄</div>
+          <p>Cliquez pour choisir un fichier</p>
+          <p style="font-size:0.75rem;margin-top:4px;">ou glissez-déposez ici</p>
+          <div class="file-name" id="fileName"></div>
+        </div>
+        <div class="file-hint">Formats acceptés : PDF, JPG, PNG · Taille max : 10 Mo</div>
+        <div class="error-msg" id="errCasier">Veuillez ajouter votre extrait de casier judiciaire.</div>
+      </div>
+      <div class="error-msg" id="errAge">Veuillez répondre à cette question.</div>
+    </div>
+
+    <div class="submit-area">
+      <div id="errGlobal"></div>
+      <button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()">Envoyer mes réponses</button>
+    </div>
+
+  </form>
+
+  <!-- Success -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">🏕</div>
+    <h2>C'est noté, merci !</h2>
+    <p>Tes réponses ont bien été enregistrées.<br>On se retrouve cet été au camp Baladin !</p>
+    <div class="recap-card" id="recapCard"></div>
+  </div>
+
+</div>
+
+<script>
+  // ⚠ Remplace cette URL par celle de ton Apps Script déployé
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJfddzz3iLNGFaa06yn20yGsF48VT8X5PhITGKvPJrC1let1Rslo_d5dWlt6eLVauY1w/exec";
+
+  const days     = [14,15,16,17,18,19,20,21];
+  const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim','Lun'];
+  let selectedDates = [];
+  let state = {};
+  let selectedFile = null;
+
+  // Vérif config
+  if (APPS_SCRIPT_URL === "APPS_SCRIPT_URL_ICI") {
+    document.getElementById('configWarn').classList.remove('hidden');
+  }
+
+  function buildDateGrid() {
+    const grid = document.getElementById('dateGrid');
+    days.forEach((d, i) => {
+      const btn = document.createElement('div');
+      btn.className = 'date-btn';
+      btn.dataset.day = d;
+      btn.innerHTML = `<span class="day-num">${d}</span><span class="day-label">${dayNames[i]}</span>`;
+      btn.onclick = () => toggleDate(d, btn);
+      grid.appendChild(btn);
+    });
+  }
+
+  function toggleDate(day, btn) {
+    if (selectedDates.includes(day)) {
+      selectedDates = selectedDates.filter(d => d !== day);
+      btn.classList.remove('selected');
+    } else {
+      selectedDates.push(day);
+      selectedDates.sort((a, b) => a - b);
+      btn.classList.add('selected');
+    }
+    updateDateDisplay();
+    checkTrainBlock();
+  }
+
+  function updateDateDisplay() {
+    const el = document.getElementById('dateRangeDisplay');
+    if (!selectedDates.length) { el.textContent = ''; return; }
+    if (selectedDates.length === 1) el.textContent = `Présent·e le ${selectedDates[0]} juillet`;
+    else el.textContent = `Du ${selectedDates[0]} au ${selectedDates[selectedDates.length - 1]} juillet`;
+  }
+
+  function selectRadio(el) {
+    const group = el.dataset.group;
+    document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    state[group] = el.dataset.val;
+
+    if (group === 'permis') {
+      document.getElementById('voitureCard').classList.toggle('hidden', el.dataset.val !== 'oui');
+      updateQNumbers();
+    }
+    if (group === 'precamp' || group === 'train') checkTrainBlock();
+    if (group === 'train') {
+      document.getElementById('trainWarning').classList.toggle('hidden', el.dataset.val !== 'non');
+    }
+    if (group === 'age20') {
+      document.getElementById('casierBlock').classList.toggle('hidden', el.dataset.val !== 'oui');
+    }
+  }
+
+  function checkTrainBlock() {
+    const show = state['precamp'] === 'non' && selectedDates.includes(14);
+    document.getElementById('trainBlock').classList.toggle('hidden', !show);
+  }
+
+  function updateQNumbers() {
+    const hasPermis = state['permis'] === 'oui';
+    document.getElementById('qAnimNum').textContent = hasPermis ? 'Question 5' : 'Question 4';
+    document.getElementById('qAgeNum').textContent  = hasPermis ? 'Question 6' : 'Question 5';
+  }
+
+  function updateSlider() {
+    const v = parseInt(document.getElementById('animSlider').value);
+    const moods = ['','Vraiment pas','Pas trop','Bof','Un peu','Ça peut aller','Pourquoi pas','Motivé·e','Bien motivé·e','Très motivé·e','Hype de fou !'];
+    const emojis = ['','😴','😑','😐','🙂','😊','😄','🤩','🥳','🔥','🚀'];
+    document.getElementById('sliderVal').textContent  = v;
+    document.getElementById('sliderMood').textContent = ' — ' + moods[v];
+    document.getElementById('sliderEmoji').textContent = emojis[v];
+  }
+
+  function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Fichier trop volumineux (max 10 Mo)');
+      input.value = '';
+      return;
+    }
+    selectedFile = file;
+    document.getElementById('fileName').textContent = '✓ ' + file.name;
+    document.getElementById('fileUploadArea').classList.add('has-file');
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function submitForm() {
+    let valid = true;
+    document.querySelectorAll('.error-msg').forEach(e => e.style.display = 'none');
+    document.getElementById('errGlobal').innerHTML = '';
+
+    if (!selectedDates.length) { document.getElementById('errDates').style.display = 'block'; valid = false; }
+    if (!state['precamp'])     { document.getElementById('errPrecamp').style.display = 'block'; valid = false; }
+    if (!state['permis'])      { document.getElementById('errPermis').style.display = 'block'; valid = false; }
+    if (state['permis'] === 'oui' && !state['voiture']) { document.getElementById('errVoiture').style.display = 'block'; valid = false; }
+    if (!state['age20'])       { document.getElementById('errAge').style.display = 'block'; valid = false; }
+    if (state['age20'] === 'oui' && !selectedFile) { document.getElementById('errCasier').style.display = 'block'; valid = false; }
+
+    if (!valid) {
+      document.getElementById('errGlobal').innerHTML = '<div class="global-error">Merci de compléter toutes les questions avant d\'envoyer.</div>';
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Envoi en cours…';
+
+    try {
+      let filePayload = null;
+      if (selectedFile) {
+        const b64 = await fileToBase64(selectedFile);
+        filePayload = { base64: b64, name: selectedFile.name, mimeType: selectedFile.type };
+      }
+
+      const animVal = parseInt(document.getElementById('animSlider').value);
+      const payload = {
+        action:   "submit",
+        dates:    selectedDates.length === 1
+                    ? `${selectedDates[0]} juillet`
+                    : `${selectedDates[0]} → ${selectedDates[selectedDates.length-1]} juillet`,
+        precamp:  state['precamp'],
+        train:    state['train'] || 'N/A',
+        permis:   state['permis'],
+        voiture:  state['voiture'] || 'N/A',
+        animer:   animVal,
+        age20:    state['age20'],
+        file:     filePayload,
+      };
+
+      if (APPS_SCRIPT_URL !== "APPS_SCRIPT_URL_ICI") {
+        const resp = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        const result = await resp.json();
+        if (!result.ok) throw new Error(result.error || 'Erreur serveur');
+      }
+
+      showSuccess(payload);
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Envoyer mes réponses';
+      document.getElementById('errGlobal').innerHTML = `<div class="global-error">Erreur lors de l'envoi : ${err.message}. Réessayez ou contactez l'organisateur.</div>`;
+    }
+  }
+
+  function showSuccess(data) {
+    const moods = ['','Vraiment pas','Pas trop','Bof','Un peu','Ça peut aller','Pourquoi pas','Motivé·e','Bien motivé·e','Très motivé·e','Hype de fou !'];
+    const rows = [
+      { label: 'Présence',           val: data.dates },
+      { label: 'Précamp (12–14/07)', val: data.precamp === 'oui' ? 'Oui' : 'Non' },
+    ];
+    if (state['precamp'] === 'non' && selectedDates.includes(14)) {
+      rows.push({ label: 'Train avec le groupe', val: data.train === 'oui' ? 'Oui (payé)' : 'Non (à sa charge)' });
+    }
+    rows.push({ label: 'Permis',           val: data.permis === 'oui' ? 'Oui' : 'Non' });
+    if (data.permis === 'oui') rows.push({ label: 'Voiture dispo', val: data.voiture === 'oui' ? 'Oui' : 'Non' });
+    rows.push({ label: "Envie d'animer",   val: `${data.animer}/10 — ${moods[data.animer]}` });
+    rows.push({ label: 'Plus de 20 ans',   val: data.age20 === 'oui' ? 'Oui' : 'Non' });
+    if (data.age20 === 'oui') rows.push({ label: 'Casier judiciaire', val: selectedFile ? '✓ Envoyé' : '—' });
+
+    document.getElementById('recapCard').innerHTML = rows.map(r =>
+      `<div class="recap-row"><span class="label">${r.label}</span><span class="val">${r.val}</span></div>`
+    ).join('');
+
+    document.getElementById('mainForm').style.display    = 'none';
+    document.querySelector('.info-banner').style.display = 'none';
+    document.getElementById('configWarn').style.display  = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  buildDateGrid();
+  updateSlider();
+</script>
+</body>
+</html>
