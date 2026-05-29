@@ -222,7 +222,7 @@
 
 <script>
   // ⚠ Remplace cette URL par celle de ton Apps Script déployé
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJfddzz3iLNGFaa06yn20yGsF48VT8X5PhITGKvPJrC1let1Rslo_d5dWlt6eLVauY1w/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGvy5EFuMcTvTTooacjSDjoAsCT_iUm7Gt_hiCf1QWHuF1Gj-Hmd7i0jd67GxSWvZI9A/exec";
 
   // Mot de passe admin côté client (protection de base)
   // Le vrai contrôle est côté Apps Script
@@ -244,7 +244,32 @@
     loadData();
   }
 
-  async function loadData() {
+  // JSONP helper - contourne le CORS pour les requetes GET vers Apps Script
+  function jsonp(url, onSuccess, onError) {
+    const cbName = '_jsonp_cb_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(function() {
+      cleanup();
+      if (onError) onError(new Error('Timeout'));
+    }, 15000);
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) {
+      cleanup();
+      onSuccess(data);
+    };
+    script.src = url + '&callback=' + cbName;
+    script.onerror = function() {
+      cleanup();
+      if (onError) onError(new Error('Script load error'));
+    };
+    document.head.appendChild(script);
+  }
+
+  function loadData() {
     document.getElementById('tableArea').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
     if (APPS_SCRIPT_URL === "APPS_SCRIPT_URL_ICI") {
@@ -254,27 +279,27 @@
       return;
     }
 
-    try {
-      const resp = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'getAll', adminPassword }),
-      });
-      const data = await resp.json();
-      if (!data.ok) {
-        if (data.error === 'Mot de passe incorrect') {
-          document.getElementById('loginError').style.display = 'block';
-          document.getElementById('loginScreen').style.display = 'flex';
-          document.getElementById('adminScreen').style.display = 'none';
+    jsonp(
+      APPS_SCRIPT_URL + '?action=getAll&adminPassword=' + encodeURIComponent(adminPassword),
+      function(data) {
+        if (!data.ok) {
+          if (data.error === 'Mot de passe incorrect') {
+            document.getElementById('loginError').style.display = 'block';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('adminScreen').style.display = 'none';
+            return;
+          }
+          document.getElementById('tableArea').innerHTML = `<div class="empty-state"><div class="big">⚠</div>Erreur : ${data.error}</div>`;
           return;
         }
-        throw new Error(data.error);
+        entries = data.entries || [];
+        document.getElementById('lastRefresh').textContent = 'Mis a jour : ' + new Date().toLocaleTimeString('fr-BE');
+        renderTable();
+      },
+      function(err) {
+        document.getElementById('tableArea').innerHTML = `<div class="empty-state"><div class="big">⚠</div>Impossible de contacter le serveur. Verifie l'URL Apps Script.</div>`;
       }
-      entries = data.entries || [];
-      document.getElementById('lastRefresh').textContent = 'Mis à jour : ' + new Date().toLocaleTimeString('fr-BE');
-      renderTable();
-    } catch (err) {
-      document.getElementById('tableArea').innerHTML = `<div class="empty-state"><div class="big">⚠</div>Erreur : ${err.message}</div>`;
-    }
+    );
   }
 
   function renderTable() {
@@ -287,6 +312,8 @@
 
     const cols = [
       { key: 'Date',               label: 'Date' },
+      { key: 'Prénom',             label: 'Prénom' },
+      { key: 'Nom',                label: 'Nom' },
       { key: 'Dates présence',     label: 'Présence' },
       { key: 'Précamp',            label: 'Précamp' },
       { key: 'Train',              label: 'Train' },
@@ -363,6 +390,8 @@
 
     const columns = [
       { header: 'Date',     dataKey: 'Date' },
+      { header: 'Prénom',   dataKey: 'Prénom' },
+      { header: 'Nom',      dataKey: 'Nom' },
       { header: 'Présence', dataKey: 'Dates présence' },
       { header: 'Précamp',  dataKey: 'Précamp' },
       { header: 'Train',    dataKey: 'Train' },
@@ -415,9 +444,9 @@
   // Données de démo si pas d'URL configurée
   function getDemoEntries() {
     return [
-      { 'Date': '01/06/2026 10:23', 'Dates présence': '14 → 21 juillet', 'Précamp': 'oui', 'Train': 'N/A', 'Permis': 'oui', 'Voiture': 'oui', "Envie d'animer": '8', 'Plus de 20 ans': 'oui', 'Nom fichier casier': 'casier_alice.pdf', 'URL fichier casier': '#' },
-      { 'Date': '02/06/2026 14:05', 'Dates présence': '15 → 21 juillet', 'Précamp': 'non', 'Train': 'oui', 'Permis': 'non', 'Voiture': 'N/A', "Envie d'animer": '5', 'Plus de 20 ans': 'non', 'Nom fichier casier': '', 'URL fichier casier': '' },
-      { 'Date': '03/06/2026 09:11', 'Dates présence': '14 → 18 juillet', 'Précamp': 'oui', 'Train': 'N/A', 'Permis': 'oui', 'Voiture': 'non', "Envie d'animer": '10', 'Plus de 20 ans': 'oui', 'Nom fichier casier': 'casier_martin.pdf', 'URL fichier casier': '#' },
+      { 'Date': '01/06/2026 10:23', 'Prénom': 'Alice', 'Nom': 'Dubois', 'Dates présence': '14 → 21 juillet', 'Précamp': 'oui', 'Train': 'N/A', 'Permis': 'oui', 'Voiture': 'oui', "Envie d'animer": '8', 'Plus de 20 ans': 'oui', 'Nom fichier casier': 'casier_alice.pdf', 'URL fichier casier': '#' },
+      { 'Date': '02/06/2026 14:05', 'Prénom': 'Tom', 'Nom': 'Renard', 'Dates présence': '15 → 21 juillet', 'Précamp': 'non', 'Train': 'oui', 'Permis': 'non', 'Voiture': 'N/A', "Envie d'animer": '5', 'Plus de 20 ans': 'non', 'Nom fichier casier': '', 'URL fichier casier': '' },
+      { 'Date': '03/06/2026 09:11', 'Prénom': 'Martin', 'Nom': 'Leroy', 'Dates présence': '14 → 18 juillet', 'Précamp': 'oui', 'Train': 'N/A', 'Permis': 'oui', 'Voiture': 'non', "Envie d'animer": '10', 'Plus de 20 ans': 'oui', 'Nom fichier casier': 'casier_martin.pdf', 'URL fichier casier': '#' },
     ];
   }
 </script>
