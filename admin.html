@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Camp Baladin 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root {
+    --forest: #2D4A3E;
+    --moss: #4A7C59;
+    --sage: #8FB89A;
+    --cream: #F5F0E8;
+    --warm: #E8DFC8;
+    --accent: #C4843A;
+    --accent-light: #F0D4A8;
+    --text: #1A2E25;
+    --text-muted: #5A7A6A;
+    --white: #FDFAF5;
+    --danger: #C0392B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--cream);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* Login */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: 16px;
+    border: 1px solid rgba(45,74,62,0.12);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+  }
+  .login-logo { font-size: 2.5rem; margin-bottom: 1rem; }
+  .login-card h1 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--forest); margin-bottom: 0.35rem; }
+  .login-card p { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.75rem; }
+  .login-card input[type="password"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(45,74,62,0.2);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    background: var(--cream);
+    color: var(--text);
+    outline: none;
+    margin-bottom: 1rem;
+    transition: border-color 0.15s;
+  }
+  .login-card input[type="password"]:focus { border-color: var(--moss); }
+  .login-btn {
+    width: 100%;
+    background: var(--forest);
+    color: var(--cream);
+    border: none;
+    border-radius: 8px;
+    padding: 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .login-btn:hover { background: var(--moss); }
+  .login-error { color: var(--danger); font-size: 0.82rem; margin-top: 0.75rem; display: none; }
+
+  /* Admin layout */
+  #adminScreen { display: none; }
+  .topbar {
+    background: var(--forest);
+    color: var(--cream);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .topbar-left h1 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; }
+  .topbar-left span { font-size: 0.8rem; color: rgba(245,240,232,0.6); }
+  .topbar-right { display: flex; gap: 10px; flex-wrap: wrap; }
+  .top-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--cream);
+    border-radius: 8px;
+    padding: 0.55rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .top-btn:hover { background: rgba(255,255,255,0.2); }
+  .top-btn.accent { background: var(--accent); border-color: var(--accent); }
+  .top-btn.accent:hover { background: #a96e2e; }
+
+  .admin-container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid rgba(45,74,62,0.1);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+  .stat-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.35rem; }
+  .stat-val { font-size: 1.8rem; font-family: 'Playfair Display', serif; font-weight: 700; color: var(--forest); }
+
+  /* Table */
+  .table-card { background: var(--white); border-radius: 12px; border: 1px solid rgba(45,74,62,0.1); overflow: hidden; }
+  .table-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(45,74,62,0.08); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .table-header h2 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--forest); }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  thead th { background: rgba(45,74,62,0.04); padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); border-bottom: 1px solid rgba(45,74,62,0.08); white-space: nowrap; }
+  tbody td { padding: 0.85rem 1rem; border-bottom: 1px solid rgba(45,74,62,0.05); color: var(--text); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(143,184,154,0.06); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .badge-oui { background: rgba(74,124,89,0.12); color: var(--moss); }
+  .badge-non { background: rgba(45,74,62,0.07); color: var(--text-muted); }
+  .badge-na  { background: rgba(45,74,62,0.04); color: rgba(90,122,106,0.5); }
+  .dl-btn {
+    background: var(--forest);
+    color: var(--cream);
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .dl-btn:hover { background: var(--moss); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 0.9rem; }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+  .loading { text-align: center; padding: 3rem; color: var(--text-muted); }
+  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(45,74,62,0.15); border-top-color: var(--forest); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .config-warn { background: rgba(196,132,58,0.12); border: 1px solid rgba(196,132,58,0.4); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: #7a4a10; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🏕</div>
+    <h1>Espace admin</h1>
+    <p>Camp Baladin 2026 — Intendants</p>
+    <input type="password" id="pwdInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')login()">
+    <button class="login-btn" onclick="login()">Accéder</button>
+    <div class="login-error" id="loginError">Mot de passe incorrect.</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminScreen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Camp Baladin 2026</h1>
+      <div><span id="lastRefresh"></span></div>
+    </div>
+    <div class="topbar-right">
+      <button class="top-btn" onclick="loadData()">↺ Actualiser</button>
+      <button class="top-btn accent" onclick="exportPDF()">⬇ Export PDF réponses</button>
+    </div>
+  </div>
+
+  <div class="admin-container">
+    <div id="configWarn" class="config-warn hidden">
+      ⚠ L'URL Apps Script n'est pas configurée. Configure <code>APPS_SCRIPT_URL</code> dans ce fichier.
+    </div>
+
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="stat-label">Réponses</div><div class="stat-val" id="statTotal">—</div></div>
+      <div class="stat-card"><div class="stat-label">Avec permis</div><div class="stat-val" id="statPermis">—</div></div>
+      <div class="stat-card"><div class="stat-label">Avec voiture</div><div class="stat-val" id="statVoiture">—</div></div>
+      <div class="stat-card"><div class="stat-label">Précamp</div><div class="stat-val" id="statPrecamp">—</div></div>
+      <div class="stat-card"><div class="stat-label">Casiers reçus</div><div class="stat-val" id="statCasiers">—</div></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <h2>Réponses des intendants</h2>
+      </div>
+      <div id="tableArea" class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ⚠ Remplace cette URL par celle de ton Apps Script déployé
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJfddzz3iLNGFaa06yn20yGsF48VT8X5PhITGKvPJrC1let1Rslo_d5dWlt6eLVauY1w/exec";
+
+  // Mot de passe admin côté client (protection de base)
+  // Le vrai contrôle est côté Apps Script
+  const ADMIN_PASSWORD_CLIENT = "baladin2026";
+
+  let entries = [];
+  let adminPassword = '';
+
+  if (APPS_SCRIPT_URL === "APPS_SCRIPT_URL_ICI") {
+    document.getElementById('configWarn')?.classList.remove('hidden');
+  }
+
+  function login() {
+    const pwd = document.getElementById('pwdInput').value.trim();
+    if (!pwd) return;
+    adminPassword = pwd;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'block';
+    loadData();
+  }
+
+  async function loadData() {
+    document.getElementById('tableArea').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    if (APPS_SCRIPT_URL === "APPS_SCRIPT_URL_ICI") {
+      // Mode démo
+      entries = getDemoEntries();
+      renderTable();
+      return;
+    }
+
+    try {
+      const resp = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'getAll', adminPassword }),
+      });
+      const data = await resp.json();
+      if (!data.ok) {
+        if (data.error === 'Mot de passe incorrect') {
+          document.getElementById('loginError').style.display = 'block';
+          document.getElementById('loginScreen').style.display = 'flex';
+          document.getElementById('adminScreen').style.display = 'none';
+          return;
+        }
+        throw new Error(data.error);
+      }
+      entries = data.entries || [];
+      document.getElementById('lastRefresh').textContent = 'Mis à jour : ' + new Date().toLocaleTimeString('fr-BE');
+      renderTable();
+    } catch (err) {
+      document.getElementById('tableArea').innerHTML = `<div class="empty-state"><div class="big">⚠</div>Erreur : ${err.message}</div>`;
+    }
+  }
+
+  function renderTable() {
+    updateStats();
+
+    if (!entries.length) {
+      document.getElementById('tableArea').innerHTML = '<div class="empty-state"><div class="big">📭</div>Aucune réponse pour l\'instant.</div>';
+      return;
+    }
+
+    const cols = [
+      { key: 'Date',               label: 'Date' },
+      { key: 'Dates présence',     label: 'Présence' },
+      { key: 'Précamp',            label: 'Précamp' },
+      { key: 'Train',              label: 'Train' },
+      { key: 'Permis',             label: 'Permis' },
+      { key: 'Voiture',            label: 'Voiture' },
+      { key: "Envie d'animer",     label: 'Animer' },
+      { key: 'Plus de 20 ans',     label: '+20 ans' },
+      { key: 'Nom fichier casier', label: 'Casier' },
+    ];
+
+    let html = '<div class="table-scroll"><table><thead><tr>';
+    cols.forEach(c => { html += `<th>${c.label}</th>`; });
+    html += '<th>Fichier</th></tr></thead><tbody>';
+
+    entries.forEach((row, i) => {
+      html += '<tr>';
+      cols.forEach(c => {
+        const v = row[c.key] || '—';
+        if (c.key === 'Précamp' || c.key === 'Permis' || c.key === 'Voiture' || c.key === 'Train' || c.key === 'Plus de 20 ans') {
+          const cls = v === 'oui' ? 'badge-oui' : v === 'non' ? 'badge-non' : 'badge-na';
+          const label = v === 'oui' ? 'Oui' : v === 'non' ? 'Non' : v;
+          html += `<td><span class="badge ${cls}">${label}</span></td>`;
+        } else if (c.key === "Envie d'animer") {
+          html += `<td>${v !== '—' ? v + '/10' : '—'}</td>`;
+        } else {
+          html += `<td>${v}</td>`;
+        }
+      });
+
+      const fileUrl  = row['URL fichier casier'];
+      const fileName = row['Nom fichier casier'];
+      if (fileUrl && fileUrl !== '—' && fileUrl !== '') {
+        html += `<td><button class="dl-btn" onclick="openFile('${fileUrl}')">⬇ Ouvrir</button></td>`;
+      } else {
+        html += `<td><span style="color:var(--text-muted);font-size:0.8rem;">—</span></td>`;
+      }
+
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    document.getElementById('tableArea').innerHTML = html;
+  }
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent    = entries.length;
+    document.getElementById('statPermis').textContent   = entries.filter(e => e['Permis'] === 'oui').length;
+    document.getElementById('statVoiture').textContent  = entries.filter(e => e['Voiture'] === 'oui').length;
+    document.getElementById('statPrecamp').textContent  = entries.filter(e => e['Précamp'] === 'oui').length;
+    document.getElementById('statCasiers').textContent  = entries.filter(e => e['Nom fichier casier'] && e['Nom fichier casier'] !== '—' && e['Nom fichier casier'] !== '').length;
+  }
+
+  function openFile(url) {
+    window.open(url, '_blank');
+  }
+
+  function exportPDF() {
+    if (!entries.length) { alert('Aucune réponse à exporter.'); return; }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    // En-tête
+    doc.setFillColor(45, 74, 62);
+    doc.rect(0, 0, 297, 22, 'F');
+    doc.setTextColor(245, 240, 232);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Camp Baladin 2026 — Réponses intendants', 14, 14);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(180, 200, 185);
+    doc.text('Exporté le ' + new Date().toLocaleDateString('fr-BE', { day:'2-digit', month:'long', year:'numeric' }), 297 - 14, 14, { align: 'right' });
+
+    const columns = [
+      { header: 'Date',     dataKey: 'Date' },
+      { header: 'Présence', dataKey: 'Dates présence' },
+      { header: 'Précamp',  dataKey: 'Précamp' },
+      { header: 'Train',    dataKey: 'Train' },
+      { header: 'Permis',   dataKey: 'Permis' },
+      { header: 'Voiture',  dataKey: 'Voiture' },
+      { header: 'Animer',   dataKey: "Envie d'animer" },
+      { header: '+20 ans',  dataKey: 'Plus de 20 ans' },
+      { header: 'Casier',   dataKey: 'Nom fichier casier' },
+    ];
+
+    const tableData = entries.map(e => {
+      const row = {};
+      columns.forEach(c => {
+        let v = e[c.dataKey] || '—';
+        if (c.dataKey === "Envie d'animer" && v !== '—') v = v + '/10';
+        row[c.dataKey] = v;
+      });
+      return row;
+    });
+
+    doc.autoTable({
+      startY: 28,
+      columns,
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [74, 124, 89],
+        textColor: [245, 240, 232],
+        fontStyle: 'bold',
+        fontSize: 8,
+      },
+      bodyStyles: { fontSize: 8, textColor: [26, 46, 37] },
+      alternateRowStyles: { fillColor: [248, 245, 238] },
+      columnStyles: {
+        'Date': { cellWidth: 30 },
+        'Dates présence': { cellWidth: 35 },
+      },
+      margin: { left: 14, right: 14 },
+    });
+
+    // Stats en bas
+    const finalY = doc.lastAutoTable.finalY + 8;
+    doc.setFontSize(8);
+    doc.setTextColor(90, 122, 106);
+    doc.text(`Total réponses : ${entries.length}  |  Avec permis : ${entries.filter(e=>e['Permis']==='oui').length}  |  Avec voiture : ${entries.filter(e=>e['Voiture']==='oui').length}  |  Précamp : ${entries.filter(e=>e['Précamp']==='oui').length}  |  Casiers reçus : ${entries.filter(e=>e['Nom fichier casier']&&e['Nom fichier casier']!=='—'&&e['Nom fichier casier']!=='').length}`, 14, finalY);
+
+    doc.save('baladin2026-reponses.pdf');
+  }
+
+  // Données de démo si pas d'URL configurée
+  function getDemoEntries() {
+    return [
+      { 'Date': '01/06/2026 10:23', 'Dates présence': '14 → 21 juillet', 'Précamp': 'oui', 'Train': 'N/A', 'Permis': 'oui', 'Voiture': 'oui', "Envie d'animer": '8', 'Plus de 20 ans': 'oui', 'Nom fichier casier': 'casier_alice.pdf', 'URL fichier casier': '#' },
+      { 'Date': '02/06/2026 14:05', 'Dates présence': '15 → 21 juillet', 'Précamp': 'non', 'Train': 'oui', 'Permis': 'non', 'Voiture': 'N/A', "Envie d'animer": '5', 'Plus de 20 ans': 'non', 'Nom fichier casier': '', 'URL fichier casier': '' },
+      { 'Date': '03/06/2026 09:11', 'Dates présence': '14 → 18 juillet', 'Précamp': 'oui', 'Train': 'N/A', 'Permis': 'oui', 'Voiture': 'non', "Envie d'animer": '10', 'Plus de 20 ans': 'oui', 'Nom fichier casier': 'casier_martin.pdf', 'URL fichier casier': '#' },
+    ];
+  }
+</script>
+</body>
+</html>
