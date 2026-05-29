@@ -169,6 +169,30 @@
   .slider-value span { font-size: 0.85rem; font-family: 'DM Sans', sans-serif; font-weight: 300; color: var(--text-muted); margin-left: 0.4rem; }
   .slider-emoji { text-align: center; font-size: 1.3rem; margin-top: 0.25rem; }
 
+  /* Text inputs */
+  .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .input-group { grid-template-columns: 1fr; } }
+  .input-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .input-wrap label { font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+  .input-wrap input[type="text"] {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid rgba(45,74,62,0.2);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    background: var(--cream);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input-wrap input[type="text"]:focus {
+    border-color: var(--moss);
+    box-shadow: 0 0 0 3px rgba(74,124,89,0.1);
+  }
+  .input-wrap input[type="text"]::placeholder { color: rgba(90,122,106,0.5); }
+
   /* File upload */
   .file-upload-area {
     border: 2px dashed rgba(45,74,62,0.25);
@@ -250,6 +274,23 @@
   </div>
 
   <form id="mainForm" novalidate>
+
+    <!-- Identité -->
+    <div class="card">
+      <div class="card-num">Identification</div>
+      <label class="question">Quel est votre nom et prénom ?</label>
+      <div class="input-group">
+        <div class="input-wrap">
+          <label for="inputPrenom">Prénom</label>
+          <input type="text" id="inputPrenom" placeholder="ex. Sophie" autocomplete="given-name">
+        </div>
+        <div class="input-wrap">
+          <label for="inputNom">Nom</label>
+          <input type="text" id="inputNom" placeholder="ex. Dupont" autocomplete="family-name">
+        </div>
+      </div>
+      <div class="error-msg" id="errIdentite">Veuillez renseigner votre nom et prénom.</div>
+    </div>
 
     <!-- Q1 : Dates -->
     <div class="card">
@@ -364,7 +405,7 @@
 
 <script>
   // ⚠ Remplace cette URL par celle de ton Apps Script déployé
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJfddzz3iLNGFaa06yn20yGsF48VT8X5PhITGKvPJrC1let1Rslo_d5dWlt6eLVauY1w/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGvy5EFuMcTvTTooacjSDjoAsCT_iUm7Gt_hiCf1QWHuF1Gj-Hmd7i0jd67GxSWvZI9A/exec";
 
   const days     = [14,15,16,17,18,19,20,21];
   const dayNames = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim','Lun'];
@@ -475,6 +516,10 @@
     document.querySelectorAll('.error-msg').forEach(e => e.style.display = 'none');
     document.getElementById('errGlobal').innerHTML = '';
 
+    const prenom = document.getElementById('inputPrenom').value.trim();
+    const nom    = document.getElementById('inputNom').value.trim();
+    if (!prenom || !nom) { document.getElementById('errIdentite').style.display = 'block'; valid = false; }
+
     if (!selectedDates.length) { document.getElementById('errDates').style.display = 'block'; valid = false; }
     if (!state['precamp'])     { document.getElementById('errPrecamp').style.display = 'block'; valid = false; }
     if (!state['permis'])      { document.getElementById('errPermis').style.display = 'block'; valid = false; }
@@ -501,6 +546,8 @@
       const animVal = parseInt(document.getElementById('animSlider').value);
       const payload = {
         action:   "submit",
+        prenom:   prenom,
+        nom:      nom,
         dates:    selectedDates.length === 1
                     ? `${selectedDates[0]} juillet`
                     : `${selectedDates[0]} → ${selectedDates[selectedDates.length-1]} juillet`,
@@ -514,12 +561,15 @@
       };
 
       if (APPS_SCRIPT_URL !== "APPS_SCRIPT_URL_ICI") {
-        const resp = await fetch(APPS_SCRIPT_URL, {
+        // no-cors : Apps Script bloque les requetes cross-origin avec lecture de reponse.
+        // On envoie en fire-and-forget - suffisant pour un submit de formulaire.
+        await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload),
         });
-        const result = await resp.json();
-        if (!result.ok) throw new Error(result.error || 'Erreur serveur');
+        // Avec no-cors on ne peut pas lire la reponse, on considere l'envoi reussi.
       }
 
       showSuccess(payload);
@@ -533,7 +583,8 @@
   function showSuccess(data) {
     const moods = ['','Vraiment pas','Pas trop','Bof','Un peu','Ça peut aller','Pourquoi pas','Motivé·e','Bien motivé·e','Très motivé·e','Hype de fou !'];
     const rows = [
-      { label: 'Présence',           val: data.dates },
+      { label: 'Prénom & Nom',        val: `${data.prenom} ${data.nom}` },
+      { label: 'Présence',            val: data.dates },
       { label: 'Précamp (12–14/07)', val: data.precamp === 'oui' ? 'Oui' : 'Non' },
     ];
     if (state['precamp'] === 'non' && selectedDates.includes(14)) {
